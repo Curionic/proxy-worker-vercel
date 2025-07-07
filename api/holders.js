@@ -1,26 +1,23 @@
 export default async function handler(req, res) {
   try {
-    const mint = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
-    const url = `https://api.solana.fm/v0/accounts/${mint}/token-holders?limit=1`;
-
-    const response = await fetch(url, {
+    const html = await fetch("https://solscan.io/token/9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk", {
       headers: {
-        accept: "application/json"
+        "User-Agent": "Mozilla/5.0"
       }
-    });
+    }).then(r => r.text());
 
-    const data = await response.json();
+    // Updated regex: finds the first "Holders" div and grabs the next div with a number
+    const match = html.match(/Holders<\/div>\s*<div[^>]*>([\d,]+)<\/div>/i);
 
-    const holderCount = data?.total;
-
-    if (typeof holderCount !== "number") {
-      return res.status(500).json({ error: "Holder count missing", raw: data });
+    if (!match) {
+      return res.status(500).json({ error: "Holder count not found in HTML" });
     }
 
-    return res.status(200).json({ holders: holderCount });
+    const count = parseInt(match[1].replace(/,/g, ""), 10);
+    return res.status(200).json({ holders: count });
 
   } catch (err) {
-    return res.status(500).json({ error: "Solana.fm fetch failed", details: err.message });
+    return res.status(500).json({ error: "Scraping failed", details: err.message });
   }
 }
 
