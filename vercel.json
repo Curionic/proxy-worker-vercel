@@ -1,11 +1,11 @@
 {
-  "functions": {
-    "api/[...slug].js": {
-      "runtime": "edge",
-      "maxDuration": 10
-    }
-  },
+  "version": 2,
+  "public": true,
+  "builds": [],
   "routes": [
-    { "src": "/(.*)", "dest": "/api/$1" }
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
