@@ -1,6 +1,7 @@
 export default async function handler(req, res) {
-  const MINT_ADDRESS = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
-  const RPC_URL = "https://api.mainnet-beta.solana.com";
+  const MINT = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
+  const API_KEY = "6214b36e-8cd8-46f9-98ff-7af37a3dd570";
+  const RPC_URL = `https://mainnet.helius-rpc.com/?api-key=${API_KEY}`;
 
   try {
     const response = await fetch(RPC_URL, {
@@ -11,25 +12,31 @@ export default async function handler(req, res) {
         id: 1,
         method: "getTokenAccountsByMint",
         params: [
-          MINT_ADDRESS,
-          { encoding: "jsonParsed" }
+          MINT,
+          { encoding: "jsonParsed", commitment: "confirmed" }
         ]
       })
     });
 
-    const json = await response.json();
-    const accounts = json?.result?.value;
+    const data = await response.json();
 
+    const accounts = data?.result?.value;
     if (!accounts) {
-      return res.status(500).json({ error: "Failed to fetch accounts" });
+      return res.status(500).json({ error: "No token accounts returned", raw: data });
     }
 
-    const holders = accounts.filter(
-      (acc) => parseInt(acc.account.data.parsed.info.tokenAmount.amount) > 0
-    );
+    const holders = new Set();
 
-    return res.status(200).json({ holders: holders.length });
-  } catch (err) {
-    return res.status(500).json({ error: "RPC fetch failed", details: err.message });
+    for (const account of accounts) {
+      const info = account.account.data.parsed.info;
+      if (parseInt(info.tokenAmount.amount) > 0) {
+        holders.add(info.owner);
+      }
+    }
+
+    return res.status(200).json({ holders: holders.size });
+
+  } catch (error) {
+    return res.status(500).json({ error: "Helius fetch failed", details: error.message });
   }
 }
