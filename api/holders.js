@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=6214b36e-8cd8-46f9-98ff-7af37a3dd570";
+  const RPC_URL = "https://api.mainnet-beta.solana.com";
   const mintAddress = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
 
   try {
@@ -31,5 +31,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "RPC fetch failed", details: err.message });
   }
 }
-
-
