@@ -1,24 +1,27 @@
 export default async function handler(req, res) {
   try {
-    const html = await fetch("https://solscan.io/token/9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk", {
+    const url = "https://dexscreener.com/solana/9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
+    
+    const html = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0"
+        "User-Agent": "Mozilla/5.0" // spoof browser to avoid blocks
       }
     }).then(r => r.text());
 
-    // Updated regex: finds the first "Holders" div and grabs the next div with a number
-    const match = html.match(/Holders<\/div>\s*<div[^>]*>([\d,]+)<\/div>/i);
+    // Match the exact <span> with class and number
+    const match = html.match(/<span class="text-subtitle-medium-16[^"]*">([\d,]+)<\/span>/);
 
     if (!match) {
       return res.status(500).json({ error: "Holder count not found in HTML" });
     }
 
-    const count = parseInt(match[1].replace(/,/g, ""), 10);
-    return res.status(200).json({ holders: count });
+    const holderCount = parseInt(match[1].replace(/,/g, ""), 10);
+    return res.status(200).json({ holders: holderCount });
 
   } catch (err) {
-    return res.status(500).json({ error: "Scraping failed", details: err.message });
+    return res.status(500).json({ error: "Dexscreener scraping failed", details: err.message });
   }
 }
+
 
 
