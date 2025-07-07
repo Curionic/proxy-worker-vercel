@@ -9,10 +9,11 @@ export default async function handler(req, res) {
     });
 
     const json = await response.json();
+    const accounts = json?.result || [];
 
     const holders = new Set();
 
-    for (const account of json) {
+    for (const account of accounts) {
       if (account.owner) {
         holders.add(account.owner);
       }
@@ -24,6 +25,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Helius token account fetch failed", details: err.message });
   }
 }
+
 
 
 
