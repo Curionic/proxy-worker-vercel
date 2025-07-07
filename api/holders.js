@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
+  const MINT_ADDRESS = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
   const RPC_URL = "https://api.mainnet-beta.solana.com";
-  const mintAddress = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
 
   try {
     const response = await fetch(RPC_URL, {
@@ -11,23 +11,25 @@ export default async function handler(req, res) {
         id: 1,
         method: "getTokenAccountsByMint",
         params: [
-          mintAddress,
-          { programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+          MINT_ADDRESS,
           { encoding: "jsonParsed" }
         ]
       })
     });
 
-    const data = await response.json();
+    const json = await response.json();
+    const accounts = json?.result?.value;
 
-    if (data?.result?.value) {
-      const holderCount = data.result.value.length;
-      res.status(200).json({ holders: holderCount });
-    } else {
-      res.status(500).json({ error: "No data returned", details: data });
+    if (!accounts) {
+      return res.status(500).json({ error: "Failed to fetch accounts" });
     }
 
+    const holders = accounts.filter(
+      (acc) => parseInt(acc.account.data.parsed.info.tokenAmount.amount) > 0
+    );
+
+    return res.status(200).json({ holders: holders.length });
   } catch (err) {
-    res.status(500).json({ error: "RPC fetch failed", details: err.message });
+    return res.status(500).json({ error: "RPC fetch failed", details: err.message });
   }
 }
