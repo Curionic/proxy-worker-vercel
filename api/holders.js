@@ -1,20 +1,18 @@
 export default async function handler(req, res) {
   try {
-    const html = await fetch("https://solscan.io/token/9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk", {
-      headers: { "User-Agent": "Mozilla/5.0" }
-    }).then(r => r.text());
+    const tokenMint = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
+    const apiURL = `https://public-api.solscan.io/token/holders?tokenAddress=${tokenMint}&limit=1`;
 
-    // More forgiving match between "Holders" label and number div
-    const match = html.match(/Holders<\/div>[\s\S]{0,300}?<div[^>]*>([\d,]+)<\/div>/);
+    const { total } = await fetch(apiURL, {
+      headers: { "accept": "application/json" }
+    }).then(r => r.json());
 
-    if (!match) {
-      return res.status(500).json({ error: "Holder count not found" });
+    if (typeof total !== "number") {
+      return res.status(500).json({ error: "Invalid API response" });
     }
 
-    const holderCount = parseInt(match[1].replace(/,/g, ""), 10);
-    res.status(200).json({ holders: holderCount });
+    return res.status(200).json({ holders: total });
   } catch (err) {
-    res.status(500).json({ error: "Scraping failed", details: err.message });
+    return res.status(500).json({ error: "API call failed", details: err.message });
   }
 }
-
