@@ -4,24 +4,25 @@ export default async function handler(req, res) {
     const apiURL = `https://public-api.solscan.io/token/holders?tokenAddress=${tokenMint}&limit=1`;
 
     const response = await fetch(apiURL, {
-      headers: {
-        "accept": "application/json"
-      }
+      headers: { "accept": "application/json" }
     });
 
-    const raw = await response.text();
+    const text = await response.text();
+    console.log("RAW Solscan response:", text); // this will show up in Vercel logs
 
-    // Debug log (optional): show in Vercel logs
-    console.log("RAW SOLSCAN RESPONSE:", raw);
-
-    const parsed = JSON.parse(raw); // this is where it previously crashed
-
-    const holderCount = parsed.total;
-    if (typeof holderCount !== "number") {
-      return res.status(500).json({ error: "Missing 'total' in response", raw });
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      return res.status(500).json({ error: "Invalid JSON", raw: text });
     }
 
-    return res.status(200).json({ holders: holderCount });
+    if (typeof json.total !== "number") {
+      return res.status(500).json({ error: "Missing 'total'", raw: json });
+    }
+
+    return res.status(200).json({ holders: json.total });
+
   } catch (err) {
     return res.status(500).json({ error: "API call failed", details: err.message });
   }
