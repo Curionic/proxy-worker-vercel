@@ -1,30 +1,27 @@
 export default async function handler(req, res) {
   try {
-    const tokenMint = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
-    const apiURL = `https://public-api.solscan.io/token/holders?tokenAddress=${tokenMint}&limit=1`;
+    const tokenAddress = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
+    const url = `https://public-api.birdeye.so/public/token/${tokenAddress}`;
 
-    const response = await fetch(apiURL, {
-      headers: { "accept": "application/json" }
+    const response = await fetch(url, {
+      headers: {
+        "accept": "application/json"
+      }
     });
 
-    const text = await response.text();
-    console.log("RAW Solscan response:", text); // this will show up in Vercel logs
+    const json = await response.json();
 
-    let json;
-    try {
-      json = JSON.parse(text);
-    } catch (e) {
-      return res.status(500).json({ error: "Invalid JSON", raw: text });
+    const holderCount = json.data?.holders ?? null;
+
+    if (!holderCount || typeof holderCount !== "number") {
+      return res.status(500).json({ error: "Could not extract holder count", raw: json });
     }
 
-    if (typeof json.total !== "number") {
-      return res.status(500).json({ error: "Missing 'total'", raw: json });
-    }
-
-    return res.status(200).json({ holders: json.total });
+    return res.status(200).json({ holders: holderCount });
 
   } catch (err) {
-    return res.status(500).json({ error: "API call failed", details: err.message });
+    return res.status(500).json({ error: "Birdeye fetch failed", details: err.message });
   }
 }
+
 
