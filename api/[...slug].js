@@ -1,16 +1,20 @@
-export default async function handler(req) {
-  const url = new URL(req.url);
-  const target = `https://winter-fire-e164.curionicone.workers.dev${url.pathname}${url.search}`;
-  const res = await fetch(target, {
-    method: req.method,
-    headers: req.headers,
-    body: req.body
-  });
-  const body = await res.arrayBuffer();
-  const headers = new Headers(res.headers);
-  headers.set("x-proxied-by", "vercel");
-  return new Response(body, {
-    status: res.status,
-    headers
-  });
+export default async function handler(req, res) {
+  const HELIUS_API_KEY = 'e4c8c3bc-a78c-4f9f-a3ec-1b98dbfa6ce6';
+  const NGA_MINT = '6FzjPZkHhv2jFQwnyRXR4e9y7TcUHgN25ekbTP9W6Ebh';
+
+  const url = `https://mainnet.helius.xyz/v1/token-metadata?api-key=${HELIUS_API_KEY}&mint=${NGA_MINT}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const holderCount = data?.tokenInfo?.numberOfHolders || 0;
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.status(200).json({ holders: holderCount });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Failed to fetch holder data' });
+  }
 }
+
