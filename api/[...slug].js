@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const HELIUS_API_KEY = 'e4c8c3bc-a78c-4f9f-a3ec-1b98dbfa6ce6';
-  const NGA_MINT = '6FzjPZkHhv2jFQwnyRXR4e9y7TcUHgN25ekbTP9W6Ebh';
+  const NGA_MINT = '9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk';
 
   const url = `https://mainnet.helius.xyz/v1/token-metadata?api-key=${HELIUS_API_KEY}&mint=${NGA_MINT}`;
 
