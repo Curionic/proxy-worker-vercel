@@ -1,31 +1,35 @@
 export default async function handler(req, res) {
-  try {
-    const tokenMint = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
-    const apiKey = "6214b36e-8cd8-46f9-98ff-7af37a3dd570";
-    const url = `https://api.helius.xyz/v0/token/${tokenMint}/accounts?api-key=${apiKey}`;
+  const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=6214b36e-8cd8-46f9-98ff-7af37a3dd570";
+  const mintAddress = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
 
-    const response = await fetch(url, {
-      headers: { accept: "application/json" }
+  try {
+    const response = await fetch(RPC_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getTokenAccountsByMint",
+        params: [
+          mintAddress,
+          { programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+          { encoding: "jsonParsed" }
+        ]
+      })
     });
 
-    const json = await response.json();
-    const accounts = json?.result || [];
+    const data = await response.json();
 
-    const holders = new Set();
-
-    for (const account of accounts) {
-      if (account.owner) {
-        holders.add(account.owner);
-      }
+    if (data?.result?.value) {
+      const holderCount = data.result.value.length;
+      res.status(200).json({ holders: holderCount });
+    } else {
+      res.status(500).json({ error: "No data returned", details: data });
     }
 
-    return res.status(200).json({ holders: holders.size });
-
   } catch (err) {
-    return res.status(500).json({ error: "Helius token account fetch failed", details: err.message });
+    res.status(500).json({ error: "RPC fetch failed", details: err.message });
   }
 }
-
-
 
 
