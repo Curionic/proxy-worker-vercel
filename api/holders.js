@@ -1,26 +1,26 @@
 export default async function handler(req, res) {
   try {
-    const tokenAddress = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
-    const url = `https://public-api.birdeye.so/public/token/${tokenAddress}`;
+    const mint = "9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk";
+    const url = `https://api.solana.fm/v0/accounts/${mint}/token-holders?limit=1`;
 
     const response = await fetch(url, {
       headers: {
-        "accept": "application/json"
+        accept: "application/json"
       }
     });
 
-    const json = await response.json();
+    const data = await response.json();
 
-    const holderCount = json.data?.holders ?? null;
+    const holderCount = data?.total;
 
-    if (!holderCount || typeof holderCount !== "number") {
-      return res.status(500).json({ error: "Could not extract holder count", raw: json });
+    if (typeof holderCount !== "number") {
+      return res.status(500).json({ error: "Holder count missing", raw: data });
     }
 
     return res.status(200).json({ holders: holderCount });
 
   } catch (err) {
-    return res.status(500).json({ error: "Birdeye fetch failed", details: err.message });
+    return res.status(500).json({ error: "Solana.fm fetch failed", details: err.message });
   }
 }
 
