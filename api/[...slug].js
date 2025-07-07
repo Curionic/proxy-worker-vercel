@@ -1,27 +1,35 @@
 export default async function handler(req, res) {
-  const HELIUS_KEY = 'e4c8c3bc-a78c-4f9f-a3ec-1b98dbfa6ce6';
-  const NGA_MINT = '9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk';
+  const { slug } = req.query;
 
-  const url = `https://api.helius.xyz/v1/token-holders?api-key=${HELIUS_KEY}&mint=${NGA_MINT}`;
+  if (slug[0] === 'holders') {
+    const NGA_MINT = '9ihdUdFC9swhCq5Ypg52fyfy7G4K7hcB8CJGpvJ8bonk';
+    const solscanUrl = `https://solscan.io/token/${NGA_MINT}`;
 
-  try {
-    const response = await fetch(url);
+    try {
+      const html = await fetch(solscanUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          'Accept': 'text/html',
+        },
+      }).then((r) => r.text());
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Helius error:', error);
-      return res.status(500).json({ error: 'Helius failed' });
+      const match = html.match(/Holders<\/div><div[^>]*?>([\d,]+)/);
+
+      if (!match || !match[1]) {
+        throw new Error('Could not extract holder count');
+      }
+
+      const holderCount = parseInt(match[1].replace(/,/g, ''), 10);
+
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.status(200).json({ holders: holderCount });
+    } catch (error) {
+      console.error('Scraping error:', error);
+      return res.status(500).json({ error: 'Failed to scrape holder count' });
     }
-
-    const data = await response.json();
-
-    // token-holders returns array of holders
-    const holderCount = Array.isArray(data) ? data.length : 0;
-
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    return res.status(200).json({ holders: holderCount });
-  } catch (err) {
-    console.error('Fetch failed:', err);
-    return res.status(500).json({ error: 'Internal server error' });
   }
+
+  // fallback if unknown slug
+  res.status(404).json({ error: 'Not found' });
 }
+
