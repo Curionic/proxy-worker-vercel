@@ -3,6 +3,9 @@ export default async function handler(req, res) {
   const HELIUS_RPC = "https://mainnet.helius-rpc.com/?api-key=6214b36e-8cd8-46f9-98ff-7af37a3dd570";
   const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 
+  // ✅ Enable CORS so browser-based code can fetch this
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
   try {
     const response = await fetch(HELIUS_RPC, {
       method: "POST",
