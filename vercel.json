@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/[...slug].js": {
+      "runtime": "edge",
+      "maxDuration": 10
+    }
+  },
+  "routes": [
+    { "src": "/(.*)", "dest": "/api/$1" }
+  ]
+}
